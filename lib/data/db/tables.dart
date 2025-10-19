@@ -59,3 +59,26 @@ class Stock extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+class Purchases extends Table {
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get supplierId => text().nullable()(); // FK hacia Suppliers
+  TextColumn get destinationStoreId => text().nullable()(); // tienda
+  TextColumn get destinationWarehouseId => text().nullable()(); // almacén
+  DateTimeColumn get date => dateTime().withDefault(currentDateAndTime)();
+  RealColumn get total => real().withDefault(const Constant(0))();
+  TextColumn get createdBy => text().nullable()(); // empleado o usuario
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class PurchaseItems extends Table {
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get purchaseId => text().references(Purchases, #id)();
+  TextColumn get productId => text().references(Products, #id)();
+  RealColumn get quantity => real()();
+  RealColumn get price => real().withDefault(const Constant(0))();
+  @override
+  Set<Column> get primaryKey => {id};
+}
+

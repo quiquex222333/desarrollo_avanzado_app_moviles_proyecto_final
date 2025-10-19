@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:inventario_offline_first/presentation/home/home_page.dart';
 import 'data/db/database.dart';
 import 'data/repositories/stock_repository.dart';
-import 'presentation/features/stock/bloc/stock_bloc.dart';
-import 'presentation/features/stock/pages/stock_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,13 +18,14 @@ void main() async {
           create: (_) => StockRepository(db),
         ),
       ],
-      child: const MyApp(),
+      child: MyApp(db: db),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final AppDatabase db;
+  const MyApp({super.key, required this.db});
 
   @override
   Widget build(BuildContext context) {
@@ -35,13 +35,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         colorSchemeSeed: Colors.teal,
       ),
-      home: BlocProvider(
-        create: (context) =>
-            StockBloc(context.read<StockRepository>())..add(StockStarted()),
-        child: const StockPage(),
-      ),
+      home: HomePage(db: db),
     );
   }
 }
-
-// P-1760891018479
