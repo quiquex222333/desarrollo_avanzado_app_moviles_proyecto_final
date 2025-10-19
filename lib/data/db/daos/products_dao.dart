@@ -11,6 +11,7 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
 
   Future<List<Product>> getAll() =>
       select(db.products).get().then((rows) => rows.cast<Product>());
+      
   Stream<List<Product>> watchAll() =>
       select(db.products).watch().map((rows) => rows.cast<Product>());
 

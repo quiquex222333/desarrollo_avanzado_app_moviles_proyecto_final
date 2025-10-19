@@ -40,3 +40,14 @@ LazyDatabase _openConnection() {
     return SqfliteQueryExecutor(path: file.path, singleInstance: true);
   });
 }
+
+Future<void> deleteLocalDatabase() async {
+  final dir = await getApplicationDocumentsDirectory();
+  final dbFile = File(p.join(dir.path, 'inventario.db'));
+  if (await dbFile.exists()) {
+    await dbFile.delete();
+    print('🗑️ Base de datos local eliminada.');
+  } else {
+    print('⚠️ No se encontró la base local.');
+  }
+}
