@@ -82,3 +82,23 @@ class PurchaseItems extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+class Sales extends Table {
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get customerName => text().nullable()(); // opcional
+  TextColumn get storeId => text().nullable()(); // tienda que realizó la venta
+  DateTimeColumn get date => dateTime().withDefault(currentDateAndTime)();
+  RealColumn get total => real().withDefault(const Constant(0))();
+  TextColumn get createdBy => text().nullable()(); // empleado
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class SaleItems extends Table {
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get saleId => text().references(Sales, #id)();
+  TextColumn get productId => text().references(Products, #id)();
+  RealColumn get quantity => real()();
+  RealColumn get price => real().withDefault(const Constant(0))();
+  @override
+  Set<Column> get primaryKey => {id};
+}
