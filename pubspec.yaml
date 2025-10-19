@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  fl_chart: ^0.66.2
 
   # Estado / BLoC
   flutter_bloc: ^9.0.0

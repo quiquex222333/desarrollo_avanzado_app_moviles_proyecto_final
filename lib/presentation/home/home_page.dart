@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:inventario_offline_first/data/repositories/reports_repository.dart';
 import 'package:inventario_offline_first/data/repositories/sales_repository.dart';
+import 'package:inventario_offline_first/presentation/features/reports/bloc/reports_bloc.dart';
+import 'package:inventario_offline_first/presentation/features/reports/pages/reports_page.dart';
 import 'package:inventario_offline_first/presentation/features/sales/bloc/sales_bloc.dart';
 import 'package:inventario_offline_first/presentation/features/sales/pages/sales_page.dart';
 import '../../data/db/database.dart';
@@ -76,9 +79,15 @@ class _HomePageState extends State<HomePage> {
 
             // 🛒 Ventas
             BlocProvider(
-              create: (ctx) => SalesBloc(ctx.read<SalesRepository>())
-                ..add(SalesStarted()),
+              create: (ctx) =>
+                  SalesBloc(ctx.read<SalesRepository>())..add(SalesStarted()),
               child: const SalesPage(),
+            ),
+
+            // 📊 Reportes
+            BlocProvider(
+              create: (ctx) => ReportsBloc(ctx.read<ReportsRepository>()),
+              child: const ReportsPage(),
             ),
           ],
         ),
@@ -107,6 +116,11 @@ class _HomePageState extends State<HomePage> {
               selectedIcon: Icon(Icons.point_of_sale),
               label: 'Ventas',
             ),
+            NavigationDestination(
+              icon: Icon(Icons.bar_chart_outlined),
+              selectedIcon: Icon(Icons.bar_chart),
+              label: 'Reportes',
+            ),
           ],
         ),
       ),
@@ -123,6 +137,8 @@ class _HomePageState extends State<HomePage> {
         return 'Compras';
       case 3:
         return 'Ventas';
+      case 4:
+        return 'Reportes';
       default:
         return 'Inventario';
     }

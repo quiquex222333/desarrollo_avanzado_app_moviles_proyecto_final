@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_sqflite/drift_sqflite.dart';
 import 'package:inventario_offline_first/data/db/daos/products_dao.dart';
 import 'package:inventario_offline_first/data/db/daos/purchases_dao.dart';
+import 'package:inventario_offline_first/data/db/daos/reports_dao.dart';
 import 'package:inventario_offline_first/data/db/daos/sales_dao.dart';
 import 'package:inventario_offline_first/data/db/daos/stock_dao.dart';
 import 'package:path/path.dart' as p;
@@ -29,6 +30,7 @@ part 'database.g.dart';
     StockDao,
     PurchasesDao,
     SalesDao,
+    ReportsDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
