@@ -19,9 +19,7 @@ class StockDao extends DatabaseAccessor<AppDatabase> with _$StockDaoMixin {
 
     return query.watch().map((rows) => rows.map((row) {
           final s = row.readTable(stock);
-          print("s: $s");
           final p = row.readTable(products);
-          print("p: $p");
           return {
             'id': s.id,
             'productId': s.productId,

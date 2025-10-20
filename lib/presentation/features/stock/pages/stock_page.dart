@@ -130,14 +130,12 @@ class _StockView extends StatelessWidget {
 
       // ➕ Botón para registrar stock
       floatingActionButton: FloatingActionButton(
+        heroTag: 'add_stock_btn',
         onPressed: () async {
           // 1️⃣ Capturar bloc y DB antes del diálogo
           final stockBloc = context.read<StockBloc>();
           final db = RepositoryProvider.of<AppDatabase>(context);
           final products = await db.productsDao.getAll();
-          print('PRODUCTOS DISPONIBLES: $products');
-          final stock = await db.stockDao.getAll();
-          print('STOCK DISPONIBLE: $stock');
 
           if (products.isEmpty) {
             // Si no hay productos, avisamos al usuario

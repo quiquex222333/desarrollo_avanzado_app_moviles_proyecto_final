@@ -28,5 +28,10 @@ class ProductsRepository {
       price: Value(price),
       imageUrl: Value(imageUrl),
     ));
+    await db.into(db.syncQueue).insert(SyncQueueCompanion.insert(
+          tablename: 'products',
+          operation: 'insert',
+          recordId: id,
+        ));
   }
 }

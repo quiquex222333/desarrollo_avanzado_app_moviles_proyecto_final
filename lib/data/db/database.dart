@@ -24,6 +24,7 @@ part 'database.g.dart';
     PurchaseItems,
     Sales,
     SaleItems,
+    SyncQueue,
   ],
   daos: [
     ProductsDao,

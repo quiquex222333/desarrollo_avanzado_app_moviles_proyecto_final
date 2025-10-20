@@ -47,6 +47,7 @@ class _SalesView extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'add_sale_btn',
         onPressed: () => _showNewSaleDialog(context),
         child: const Icon(Icons.add),
       ),

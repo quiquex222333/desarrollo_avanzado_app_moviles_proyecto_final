@@ -50,6 +50,7 @@ class _PurchasesView extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'add_purchase_btn',
         onPressed: () => _showNewPurchaseDialog(context),
         child: const Icon(Icons.add),
       ),

@@ -11,8 +11,8 @@ class Products extends Table {
   RealColumn get price => real().withDefault(const Constant(0))();
   TextColumn get imageUrl => text().nullable()();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-  @override
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();  @override
   Set<Column> get primaryKey => {id};
 }
 
@@ -21,8 +21,8 @@ class Stores extends Table {
   TextColumn get name => text()();
   TextColumn get location => text().nullable()();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-  @override
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();  @override
   Set<Column> get primaryKey => {id};
 }
 
@@ -54,6 +54,7 @@ class Stock extends Table {
   TextColumn get storeId => text().nullable().references(Stores, #id)();
   TextColumn get warehouseId => text().nullable().references(Warehouses, #id)();
   RealColumn get quantity => real().withDefault(const Constant(0))();
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
@@ -68,6 +69,9 @@ class Purchases extends Table {
   DateTimeColumn get date => dateTime().withDefault(currentDateAndTime)();
   RealColumn get total => real().withDefault(const Constant(0))();
   TextColumn get createdBy => text().nullable()(); // empleado o usuario
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -78,6 +82,9 @@ class PurchaseItems extends Table {
   TextColumn get productId => text().references(Products, #id)();
   RealColumn get quantity => real()();
   RealColumn get price => real().withDefault(const Constant(0))();
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -89,6 +96,9 @@ class Sales extends Table {
   DateTimeColumn get date => dateTime().withDefault(currentDateAndTime)();
   RealColumn get total => real().withDefault(const Constant(0))();
   TextColumn get createdBy => text().nullable()(); // empleado
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -99,6 +109,17 @@ class SaleItems extends Table {
   TextColumn get productId => text().references(Products, #id)();
   RealColumn get quantity => real()();
   RealColumn get price => real().withDefault(const Constant(0))();
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
   @override
   Set<Column> get primaryKey => {id};
+}
+
+class SyncQueue extends Table {
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get tablename => text()(); // 'products', 'sales', etc.
+  TextColumn get operation => text()(); // 'insert', 'update', 'delete'
+  TextColumn get recordId => text()();  // ID del registro afectado
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }

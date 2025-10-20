@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:inventario_offline_first/utils/pdf_report_generator.dart';
+import 'package:printing/printing.dart';
 import '../../../../data/repositories/reports_repository.dart';
 import '../../../../data/db/database.dart';
 import '../bloc/reports_bloc.dart';
@@ -41,6 +43,35 @@ class _ReportsViewState extends State<_ReportsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Reportes'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            tooltip: 'Exportar a PDF',
+            onPressed: () async {
+              final bloc = context.read<ReportsBloc>();
+              final state = bloc.state;
+
+              if (state.status == ReportsStatus.success) {
+                final pdfData = await PDFReportGenerator.generate(
+                  from: from,
+                  to: to,
+                  sales: state.sales,
+                  purchases: state.purchases,
+                );
+                await Printing.layoutPdf(
+                  onLayout: (format) async => pdfData,
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Primero carga los reportes.')),
+                );
+              }
+            },
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: BlocBuilder<ReportsBloc, ReportsState>(
