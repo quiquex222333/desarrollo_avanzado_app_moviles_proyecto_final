@@ -1,27 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'data/services/sync_service.dart';
-
-import 'package:inventario_offline_first/core/config/supabase_config.dart';
-import 'package:inventario_offline_first/data/repositories/auth_repository.dart';
-import 'package:inventario_offline_first/global_connectivity.dart';
 import 'package:inventario_offline_first/presentation/auth/bloc/auth_bloc.dart';
-import 'package:inventario_offline_first/presentation/auth/pages/auth_page.dart';
-import 'package:inventario_offline_first/presentation/home/home_page.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as supabase; // 👈 alias agregado
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+
+import 'core/config/supabase_config.dart';
 import 'data/db/database.dart';
+import 'data/services/sync_service.dart';
+import 'data/repositories/auth_repository.dart';
+
+import 'presentation/auth/login_screen.dart';
+import 'presentation/auth/register_screen.dart';
+import 'presentation/home/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SupabaseConfig.init();
 
-  // Inicializa base de datos y repositorio
+  // Inicializa Supabase
+  await SupabaseConfig.init();
+  final supabaseClient = supabase.Supabase.instance.client;
+
+  // Inicializa base de datos local (offline)
   final db = AppDatabase();
-  final supabaseClient = supabase.Supabase.instance.client; // 👈 usa el alias
+
+  // Servicio de sincronización
   final syncService = SyncService(db, supabaseClient);
 
-  // Inicia listener de conexión
+  // Listener de conectividad
   Connectivity().onConnectivityChanged.listen((status) {
     if (status != ConnectivityResult.none) {
       print('🌐 Conectado — sincronizando...');
@@ -32,16 +37,19 @@ void main() async {
   // Activa realtime
   syncService.initRealtime();
 
-  final authRepo = AuthRepository();
+  // Repositorio de autenticación
+  final authRepository = AuthRepository();
 
   runApp(
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(value: db),
-        RepositoryProvider.value(value: authRepo),
+        RepositoryProvider.value(value: authRepository),
       ],
-      child: BlocProvider(
-        create: (_) => AuthBloc(authRepo)..add(AuthStarted()),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => AuthBloc(authRepository)),
+        ],
         child: const MyApp(),
       ),
     ),
@@ -56,18 +64,48 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Inventario Offline-First',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blueGrey,
+        useMaterial3: true,
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      ),
+      initialRoute: '/',
       routes: {
-        '/login': (_) => const LoginPage(),
+        '/': (_) => const AuthGate(),
+        '/login': (_) => const LoginScreen(),
+        '/register': (_) => const RegisterScreen(),
         '/home': (_) => const HomePage(),
       },
-      home: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, state) {
-          if (state.status == AuthStatus.authenticated) {
-            return const HomePage();
-          }
-          return const LoginPage();
-        },
-      ),
+    );
+  }
+}
+
+/// Widget que decide a qué pantalla ir según el estado de autenticación
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (context, state) {
+        if (state is AuthLoading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        } else if (state is AuthAuthenticated) {
+          return const HomePage();
+        } else {
+          return const LoginScreen();
+        }
+      },
     );
   }
 }

@@ -1,85 +1,66 @@
-import 'dart:convert';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthRepository {
-  final _supabase = Supabase.instance.client;
-  final _storage = const FlutterSecureStorage();
+  final SupabaseClient _client = Supabase.instance.client;
+  final _secureStorage = const FlutterSecureStorage();
 
-  /// Inicia sesión
-  Future<AuthResponse> login(String email, String password) async {
-    final res = await _supabase.auth.signInWithPassword(
+  // Registro de usuario con validación de seguridad
+  Future<AuthResponse> signUp({
+    required String email,
+    required String password,
+    required String role,
+    required String name,
+  }) async {
+    if (!_validatePassword(password)) {
+      throw Exception(
+          'La contraseña no cumple con los requisitos de seguridad.');
+    }
+
+    final response = await _client.auth.signUp(
       email: email,
       password: password,
+      data: {'role': role, 'name': name},
     );
 
-    // ✅ Guardar la sesión como JSON string si existe
-    if (res.session != null) {
-      final sessionString = jsonEncode(res.session!.toJson());
-      await _storage.write(key: 'session', value: sessionString);
+    if (response.user == null) {
+      throw Exception('Error al registrar usuario');
     }
 
-    return res;
+    // Guardar sesión de forma segura
+    await _secureStorage.write(
+        key: 'access_token', value: response.session?.accessToken);
+    return response;
   }
 
-  /// Obtiene el rol del usuario autenticado
-  Future<String?> getUserRole() async {
-    final user = _supabase.auth.currentUser;
+  // Login seguro
+  Future<AuthResponse> signIn(String email, String password) async {
+    final response =
+        await _client.auth.signInWithPassword(email: email, password: password);
 
-    // 🚨 Si no hay usuario autenticado, no consultar la tabla
-    if (user == null) {
-      print('⚠️ Intento de obtener rol sin sesión activa');
-      return null;
+    if (response.session == null) {
+      throw Exception('Credenciales inválidas');
     }
 
-    try {
-      final res = await _supabase
-          .from('users')
-          .select('role')
-          .eq('auth_user_id', user.id)
-          .maybeSingle();
-
-      if (res == null) return null;
-      return res['role'] as String?;
-    } on PostgrestException catch (e) {
-      print('❌ Error al obtener rol: ${e.message}');
-      return null;
-    } catch (e) {
-      print('❌ Error desconocido en getUserRole: $e');
-      return null;
-    }
+    await _secureStorage.write(
+        key: 'access_token', value: response.session!.accessToken);
+    return response;
   }
 
-  /// Cierra sesión
-  Future<void> logout() async {
-    await _supabase.auth.signOut();
-    await _storage.delete(key: 'session');
+  Future<void> signOut() async {
+    await _client.auth.signOut();
+    await _secureStorage.delete(key: 'access_token');
   }
 
-  /// Usuario autenticado actual
-  User? get currentUser => _supabase.auth.currentUser;
+  Future<User?> getCurrentUser() async {
+    final user = _client.auth.currentUser;
+    return user;
+  }
 
-  /// Restaura sesión previa desde almacenamiento seguro
-  Future<void> restoreSession() async {
-    final storedSession = await _storage.read(key: 'session');
-
-    // 🚨 Evitar llamadas vacías
-    if (storedSession == null || storedSession.isEmpty) {
-      print('⚠️ No hay sesión almacenada para restaurar');
-      return;
-    }
-
-    try {
-      final res = await _supabase.auth.recoverSession(storedSession);
-
-      if (res.session != null) {
-        final newSessionString = jsonEncode(res.session!.toJson());
-        await _storage.write(key: 'session', value: newSessionString);
-      }
-    } on AuthException catch (e) {
-      print('❌ Error de sesión Supabase: ${e.message}');
-    } catch (e) {
-      print('❌ Error desconocido al restaurar sesión: $e');
-    }
+  // Validación de complejidad de contraseña (8+, mayúscula, minúscula, número, carácter especial)
+  bool _validatePassword(String password) {
+    final regex = RegExp(
+        r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
+    return regex.hasMatch(password);
   }
 }

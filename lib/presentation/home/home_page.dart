@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:inventario_offline_first/data/db/database.dart';
 import 'package:inventario_offline_first/presentation/auth/bloc/auth_bloc.dart';
-import 'package:inventario_offline_first/presentation/features/reports/pages/reports_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:inventario_offline_first/data/db/database.dart';
+
+// Importa tus módulos existentes
+import 'package:inventario_offline_first/presentation/features/products/pages/products_page.dart';
+import 'package:inventario_offline_first/presentation/features/stock/pages/stock_page.dart';
+import 'package:inventario_offline_first/presentation/features/purchases/pages/purchases_page.dart';
 import 'package:inventario_offline_first/presentation/features/sales/pages/sales_page.dart';
-import 'package:inventario_offline_first/presentation/features/stock/pages/stock_page.dart'; // 👈 importa esta página
-import '../features/products/pages/products_page.dart';
-import '../features/purchases/pages/purchases_page.dart';
+import 'package:inventario_offline_first/presentation/features/reports/pages/reports_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,19 +26,31 @@ class _HomePageState extends State<HomePage> {
     final db = RepositoryProvider.of<AppDatabase>(context);
     final authState = context.watch<AuthBloc>().state;
 
-    if (authState.status != AuthStatus.authenticated) {
-      return const SizedBox.shrink();
+    // --- Si el usuario no está autenticado ---
+    if (authState is! AuthAuthenticated) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            'No autenticado',
+            style: TextStyle(fontSize: 18),
+          ),
+        ),
+      );
     }
 
-    final role = authState.role ?? '';
+    // --- Usuario autenticado ---
+    final User user = authState.user;
+    print(user);
+    final role = user.userMetadata?['role'] ?? 'employee';
 
-    final pages = <Widget>[];
-    final tabs = <NavigationDestination>[];
+    // --- Configura pestañas dinámicamente según el rol ---
+    final List<Widget> pages = [];
+    final List<NavigationDestination> tabs = [];
 
     if (role == 'admin') {
       pages.addAll([
         const ProductsPage(),
-        const StockPage(),      // ✅ agregado
+        const StockPage(),
         const PurchasesPage(),
         const SalesPage(),
         const ReportsPage(),
@@ -44,7 +59,7 @@ class _HomePageState extends State<HomePage> {
         const NavigationDestination(
             icon: Icon(Icons.inventory), label: 'Productos'),
         const NavigationDestination(
-            icon: Icon(Icons.warehouse), label: 'Stock'), // ✅ agregado
+            icon: Icon(Icons.warehouse), label: 'Stock'),
         const NavigationDestination(
             icon: Icon(Icons.shopping_cart), label: 'Compras'),
         const NavigationDestination(
@@ -52,7 +67,7 @@ class _HomePageState extends State<HomePage> {
         const NavigationDestination(
             icon: Icon(Icons.bar_chart), label: 'Reportes'),
       ]);
-    } else if (role == 'store_manager') {
+    } else if (role == 'employee') {
       pages.addAll([
         const SalesPage(),
         const ReportsPage(),
@@ -74,9 +89,31 @@ class _HomePageState extends State<HomePage> {
         const NavigationDestination(
             icon: Icon(Icons.bar_chart), label: 'Reportes'),
       ]);
+    } else {
+      // Si no tiene un rol reconocido
+      return Scaffold(
+        body: Center(
+          child: Text(
+            'Rol no autorizado: $role',
+            style: const TextStyle(fontSize: 16, color: Colors.redAccent),
+          ),
+        ),
+      );
     }
 
+    // --- Interfaz principal ---
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Inventario Offline-First ($role)'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              context.read<AuthBloc>().add(LogoutRequested());
+            },
+          ),
+        ],
+      ),
       body: IndexedStack(
         index: _selectedIndex,
         children: pages,
