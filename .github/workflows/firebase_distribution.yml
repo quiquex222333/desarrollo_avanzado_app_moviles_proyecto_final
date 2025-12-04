@@ -1,0 +1,91 @@
+# Nombre del workflow que se mostrará en GitHub Actions
+name: Firebase App Distribution CI/CD
+
+# Disparadores del workflow
+on:
+  push:
+    branches:
+      - develop       # Solo se ejecuta cuando se hace push a la rama develop
+      - '*release*' # O cualquier rama que contenga 'release' en su nombre
+
+
+jobs:
+  # JOB 1: Analiza el código para detectar errores de estilo o sintaxis
+  lints:
+    runs-on: ubuntu-latest
+    container: ghcr.io/cirruslabs/flutter:3.27.2 #Contenedor de Docker para flutter
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code
+        run: flutter analyze
+
+  # JOB 2: Ejecuta tests automatizados de Flutter
+  tests:
+    runs-on: ubuntu-latest
+    container: ghcr.io/cirruslabs/flutter:3.27.2
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test
+
+  # JOB 3: Distribuye a Firebase App Distribution (development)
+  firebase_distribution_dev:
+    name: Distribute Development
+    needs: [lints, tests]                   # Este job solo corre si lints y tests pasan
+    if: github.ref == 'refs/heads/develop'  # Solo corre si estamos en la rama develop
+    runs-on: ubuntu-latest
+    container: ghcr.io/cirruslabs/flutter:3.27.2
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK (development)
+        run: flutter build apk --flavor dev
+
+      - name: Upload to Firebase App Distribution (dev)
+        run: |
+          curl -sL https://firebase.tools | bash
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-dev-release.apk \
+            --app ${{ secrets.FIREBASE_APP_ID_DEV }} \
+            --groups "QA" \
+            --token ${{ secrets.FIREBASE_TOKEN }}
+
+  # JOB 4: Distribuye a Firebase App Distribution (producción)
+  firebase_distribution_prod:
+    name: Distribute Production
+    needs: [lints, tests]
+    if: contains(github.ref, 'release')
+    runs-on: ubuntu-latest
+    container: ghcr.io/cirruslabs/flutter:3.27.2
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK (production)
+        run: flutter build apk --flavor prod
+
+      - name: Upload to Firebase App Distribution (prod)
+        run: |
+          curl -sL https://firebase.tools | bash
+          firebase appdistribution:distribute build/app/outputs/flutter-apk/app-prod-release.apk \
+            --app ${{ secrets.FIREBASE_APP_ID_PROD }} \
+            --groups "testers" \
+            --token ${{ secrets.FIREBASE_TOKEN }}
