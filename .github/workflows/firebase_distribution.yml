@@ -51,6 +51,21 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      # 🔥 FIX: Java 17 para Android Build
+      - name: Install Java 17
+        run: |
+          apt-get update
+          apt-get install -y openjdk-17-jdk
+          echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
+          export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+          java -version
+
+      - name: Accept Android licenses
+        run: yes | sdkmanager --licenses
+
+      - name: Install Android Platform 35
+        run: sdkmanager "platforms;android-35"
+
       - name: Install dependencies
         run: flutter pub get
 
