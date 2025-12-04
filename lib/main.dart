@@ -4,6 +4,9 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:inventario_offline_first/presentation/auth/bloc/auth_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
+// 🔥 Firebase
+import 'core/firebase/firebase.dart';
+
 import 'core/config/supabase_config.dart';
 import 'data/db/database.dart';
 import 'data/services/sync_service.dart';
@@ -13,8 +16,9 @@ import 'presentation/auth/login_screen.dart';
 import 'presentation/auth/register_screen.dart';
 import 'presentation/home/home_page.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeFirebaseApp();
 
   // Inicializa Supabase
   await SupabaseConfig.init();
