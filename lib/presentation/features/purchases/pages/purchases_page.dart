@@ -78,6 +78,7 @@ class _PurchasesView extends StatelessWidget {
     String? selectedSupplier;
 
     showDialog(
+      // ignore: use_build_context_synchronously
       context: context,
       builder: (ctx) {
         return StatefulBuilder(builder: (ctx, setState) {
@@ -108,8 +109,7 @@ class _PurchasesView extends StatelessWidget {
                         title: Text(
                           products
                                   .firstWhere((p) => p.id == item['productId'])
-                                  .name ??
-                              'Producto',
+                                  .name
                         ),
                         subtitle: Text(
                             'Cant: ${item['quantity']} x \$${item['price']}'),

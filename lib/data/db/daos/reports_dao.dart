@@ -6,6 +6,7 @@ part 'reports_dao.g.dart';
 
 @DriftAccessor(tables: [Sales, Purchases])
 class ReportsDao extends DatabaseAccessor<AppDatabase> with _$ReportsDaoMixin {
+  // ignore: use_super_parameters
   ReportsDao(AppDatabase db) : super(db);
 
   // Totales agrupados por fecha

@@ -6,6 +6,7 @@ part 'sales_dao.g.dart';
 
 @DriftAccessor(tables: [Sales, SaleItems, Products])
 class SalesDao extends DatabaseAccessor<AppDatabase> with _$SalesDaoMixin {
+  // ignore: use_super_parameters
   SalesDao(AppDatabase db) : super(db);
 
   Future<void> insertSaleWithItems({

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inventario_offline_first/presentation/auth/bloc/auth_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:inventario_offline_first/data/db/database.dart';
 
 // Importa tus módulos existentes
 import 'package:inventario_offline_first/presentation/features/products/pages/products_page.dart';
@@ -23,7 +22,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final db = RepositoryProvider.of<AppDatabase>(context);
+    // final db = RepositoryProvider.of<AppDatabase>(context);
     final authState = context.watch<AuthBloc>().state;
 
     // --- Si el usuario no está autenticado ---
@@ -40,7 +39,6 @@ class _HomePageState extends State<HomePage> {
 
     // --- Usuario autenticado ---
     final User user = authState.user;
-    print(user);
     final role = user.userMetadata?['role'] ?? 'employee';
 
     // --- Configura pestañas dinámicamente según el rol ---

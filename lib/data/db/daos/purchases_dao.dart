@@ -6,6 +6,7 @@ part 'purchases_dao.g.dart';
 
 @DriftAccessor(tables: [Purchases, PurchaseItems, Products])
 class PurchasesDao extends DatabaseAccessor<AppDatabase> with _$PurchasesDaoMixin {
+  // ignore: use_super_parameters
   PurchasesDao(AppDatabase db) : super(db);
 
   Future<void> insertPurchaseWithItems({

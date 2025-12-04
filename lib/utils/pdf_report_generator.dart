@@ -39,7 +39,7 @@ class PDFReportGenerator {
           pw.SizedBox(height: 10),
           pw.Text('Totales generales:',
               style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-          pw.Table.fromTextArray(
+          pw.TableHelper.fromTextArray(
             data: [
               ['Tipo', 'Total'],
               ['Ventas', '\$${totalSales.toStringAsFixed(2)}'],
@@ -57,7 +57,7 @@ class PDFReportGenerator {
           pw.SizedBox(height: 20),
           pw.Text('Resumen diario de Ventas:',
               style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-          pw.Table.fromTextArray(
+          pw.TableHelper.fromTextArray(
             data: [
               ['Fecha', 'Total'],
               ...sales.map((e) => [e['date'], '\$${e['total'].toStringAsFixed(2)}'])
@@ -72,7 +72,7 @@ class PDFReportGenerator {
           pw.SizedBox(height: 20),
           pw.Text('Resumen diario de Compras:',
               style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-          pw.Table.fromTextArray(
+          pw.TableHelper.fromTextArray(
             data: [
               ['Fecha', 'Total'],
               ...purchases.map((e) => [e['date'], '\$${e['total'].toStringAsFixed(2)}'])
